@@ -13,6 +13,13 @@ import {
   shellEscape,
   writePluginConfig,
 } from "./config-store.js";
+import {
+  defaultSkillsRoot,
+  expectedSkillFiles,
+  hasBrowserbaseSkills,
+  resolveSkillsRoot,
+  syncBrowserbaseSkills,
+} from "./skills-sync.js";
 
 const PLUGIN_ID = "browserbase";
 const LEGACY_PLUGIN_IDS = [PLUGIN_ID, "clawd-plugin-browserbase", "openclaw-browserbase"];
@@ -161,10 +168,46 @@ async function promptAndPersistCredentials(
     });
 
     console.log(`\nSaved Browserbase credentials to ${configPath}`);
-    console.log("Restart ClawdBot/OpenClaw to apply updated plugin config.\n");
+    console.log("Restart OpenClaw to apply updated plugin config.\n");
     return true;
   } finally {
     rl.close();
+  }
+}
+
+async function runSkillsSync(options?: {
+  targetRoot?: string;
+  ref?: string;
+  logger?: OpenClawPluginApi["logger"];
+  silent?: boolean;
+}): Promise<boolean> {
+  const logger = options?.logger;
+
+  try {
+    const result = await syncBrowserbaseSkills({
+      targetRoot: options?.targetRoot,
+      ref: options?.ref,
+    });
+
+    if (!options?.silent) {
+      console.log(
+        `Synced Browserbase skills from browserbase/skills@${result.ref} to ${result.targetRoot}`
+      );
+      console.log(`Files updated: ${result.filesWritten.length}`);
+    }
+
+    logger?.info(
+      `browserbase: synced skills from browserbase/skills@${result.ref} to ${result.targetRoot}`
+    );
+    return true;
+  } catch (error) {
+    const message = String((error as Error)?.message ?? error);
+    logger?.warn(`browserbase: skill sync failed (${message})`);
+    if (!options?.silent) {
+      console.warn(`Warning: failed to sync Browserbase skills: ${message}`);
+      console.warn("Retry with: openclaw browserbase skills sync");
+    }
+    return false;
   }
 }
 
@@ -180,8 +223,14 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
       .option("--api-key <apiKey>", "Browserbase API key")
       .option("--project-id <projectId>", "Browserbase project ID")
       .option("-c, --config <path>", "Override config file path")
+      .option("--skip-skills-sync", "Skip syncing Browserbase skills from github", false)
+      .option("--skills-dir <path>", "Override skills target directory")
+      .option("--skills-ref <ref>", "Git ref for browserbase/skills", "main")
       .action(async (options: any) => {
         const configPath = resolveConfigPath(options.config);
+        const shouldSyncSkills = !Boolean(options.skipSkillsSync);
+        const skillsTargetRoot = resolveSkillsRoot(options.skillsDir);
+        const skillsRef = typeof options.skillsRef === "string" ? options.skillsRef.trim() : "main";
         let rawExisting: Record<string, unknown> = {};
         try {
           rawExisting = readPluginConfig(configPath, PLUGIN_ID);
@@ -207,11 +256,18 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
           });
 
           console.log(`Saved Browserbase credentials to ${configPath}`);
-          console.log("Restart ClawdBot/OpenClaw to apply updated plugin config.");
+          console.log("Restart OpenClaw to apply updated plugin config.");
+          if (shouldSyncSkills) {
+            await runSkillsSync({
+              targetRoot: skillsTargetRoot,
+              ref: skillsRef,
+              logger,
+            });
+          }
           return;
         }
 
-        await promptAndPersistCredentials(
+        const configured = await promptAndPersistCredentials(
           configPath,
           {
             apiKey: apiKeyFlag || existing.apiKey,
@@ -219,6 +275,14 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
           },
           true
         );
+
+        if (configured && shouldSyncSkills) {
+          await runSkillsSync({
+            targetRoot: skillsTargetRoot,
+            ref: skillsRef,
+            logger,
+          });
+        }
       });
 
     browserbase
@@ -237,6 +301,9 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
           projectId: maskSecret(config.projectId),
           baseUrl: config.baseUrl,
           promptOnStart: config.promptOnStart,
+          autoSyncSkills: config.autoSyncSkills,
+          skillsInstalled: hasBrowserbaseSkills(defaultSkillsRoot()),
+          skillsPath: defaultSkillsRoot(),
         };
 
         if (options.json) {
@@ -250,6 +317,57 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
         console.log(`Project ID: ${payload.projectId}`);
         console.log(`Base URL: ${payload.baseUrl}`);
         console.log(`Prompt on startup: ${payload.promptOnStart ? "yes" : "no"}`);
+        console.log(`Auto-sync skills: ${payload.autoSyncSkills ? "yes" : "no"}`);
+        console.log(`Skills installed: ${payload.skillsInstalled ? "yes" : "no"}`);
+        console.log(`Skills path: ${payload.skillsPath}`);
+      });
+
+    const browserbaseSkills = browserbase
+      .command("skills")
+      .description("Manage Browserbase skills synced from github:browserbase/skills");
+
+    browserbaseSkills
+      .command("sync")
+      .description("Download/update Browserbase skills into ~/.openclaw/skills")
+      .option("--dir <path>", "Override skills target directory")
+      .option("--ref <ref>", "Git ref for browserbase/skills", "main")
+      .action(async (options: any) => {
+        const targetRoot = resolveSkillsRoot(options.dir);
+        const ref = typeof options.ref === "string" ? options.ref.trim() : "main";
+        await runSkillsSync({
+          targetRoot,
+          ref,
+          logger,
+        });
+      });
+
+    browserbaseSkills
+      .command("status")
+      .description("Check whether Browserbase skills are installed")
+      .option("--dir <path>", "Override skills target directory")
+      .option("--json", "Output JSON", false)
+      .action((options: any) => {
+        const targetRoot = resolveSkillsRoot(options.dir);
+        const installed = hasBrowserbaseSkills(targetRoot);
+        const expectedFiles = expectedSkillFiles(targetRoot);
+
+        if (options.json) {
+          console.log(
+            JSON.stringify(
+              {
+                installed,
+                targetRoot,
+                expectedFiles,
+              },
+              null,
+              2
+            )
+          );
+          return;
+        }
+
+        console.log(`Installed: ${installed ? "yes" : "no"}`);
+        console.log(`Target path: ${targetRoot}`);
       });
 
     browserbase
@@ -318,6 +436,19 @@ async function maybePromptOnStartup(
   didStartupPrompt = true;
 
   const { configPath, config } = loadMergedConfig(api, logger);
+  const managedSkillsRoot = defaultSkillsRoot();
+
+  if (config.autoSyncSkills && !hasBrowserbaseSkills(managedSkillsRoot)) {
+    logger.info(
+      `browserbase: Browserbase skills not found in ${managedSkillsRoot}; syncing from browserbase/skills`
+    );
+    await runSkillsSync({
+      targetRoot: managedSkillsRoot,
+      ref: "main",
+      logger,
+      silent: true,
+    });
+  }
 
   if (config.apiKey && config.projectId) {
     logger.info("browserbase: credentials loaded");
@@ -356,13 +487,26 @@ async function maybePromptOnStartup(
     rl.close();
   }
 
-  await promptAndPersistCredentials(configPath, { apiKey: config.apiKey, projectId: config.projectId }, false);
+  const configured = await promptAndPersistCredentials(
+    configPath,
+    { apiKey: config.apiKey, projectId: config.projectId },
+    false
+  );
+
+  if (configured && config.autoSyncSkills) {
+    await runSkillsSync({
+      targetRoot: managedSkillsRoot,
+      ref: "main",
+      logger,
+      silent: true,
+    });
+  }
 }
 
 export default {
   id: PLUGIN_ID,
   name: "Browserbase",
-  description: "Browserbase setup helper with bundled skills",
+  description: "Browserbase setup helper with dynamic skill sync",
   kind: "tool" as const,
   configSchema: browserbaseConfigSchema,
   register(api: OpenClawPluginApi) {

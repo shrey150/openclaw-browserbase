@@ -6,7 +6,7 @@ It provides:
 
 - interactive Browserbase credential setup,
 - config status/env helpers,
-- bundled Browserbase skills under `skills/`.
+- dynamic skill sync from `github:browserbase/skills`.
 
 ## Install
 
@@ -20,30 +20,22 @@ For local development:
 openclaw plugins install -l .
 ```
 
-Note: current OpenClaw plugin docs recommend npm/local specs for installs.
-
 ## Setup
 
 ```bash
 openclaw browserbase setup
 ```
 
-This writes plugin config into your OpenClaw config (typically `~/.openclaw/openclaw.json`):
+By default setup will also sync Browserbase skills from `browserbase/skills` into
+`~/.openclaw/skills`.
 
-```json
-{
-  "plugins": {
-    "entries": {
-      "browserbase": {
-        "enabled": true,
-        "config": {
-          "apiKey": "bb_...",
-          "projectId": "proj_..."
-        }
-      }
-    }
-  }
-}
+You can manage skill sync directly:
+
+```bash
+openclaw browserbase skills status
+openclaw browserbase skills sync
+openclaw browserbase skills sync --ref main
+openclaw browserbase skills sync --dir ~/.openclaw/skills
 ```
 
 ## Commands
@@ -56,6 +48,8 @@ openclaw browserbase env --format shell        # export commands
 openclaw browserbase env --format dotenv       # dotenv output
 openclaw browserbase env --format json         # JSON output
 openclaw browserbase where                     # config file path used
+openclaw browserbase skills status             # check dynamic skills sync status
+openclaw browserbase skills sync               # download/update skills from browserbase/skills
 ```
 
 Legacy CLI alias support remains:
@@ -64,19 +58,23 @@ Legacy CLI alias support remains:
 clawdbot browserbase setup
 ```
 
-## Skills shipped with this plugin
+## Dynamic skills behavior
 
-- `skills/browser-automation`
-- `skills/functions`
+OpenClaw installs plugins with lifecycle scripts disabled, so plugin install hooks are not a reliable place to fetch remote skill files.
 
-These are registered in `openclaw.plugin.json` via the `skills` field so they load with the plugin.
+This plugin instead syncs skills during setup and (optionally) on startup when missing:
+
+- `browser-automation`
+- `functions`
+
+Source of truth: [https://github.com/browserbase/skills](https://github.com/browserbase/skills)
 
 ## Development
 
 ```bash
-npm install
-npm run check-types
-npm test
+pnpm install
+pnpm run check-types
+pnpm test
 ```
 
 ## References

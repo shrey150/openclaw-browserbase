@@ -29,6 +29,7 @@ describe("parseConfig", () => {
     expect(cfg.projectId).toBe("proj_env");
     expect(cfg.baseUrl).toBe("https://api.browserbase.com");
     expect(cfg.promptOnStart).toBe(true);
+    expect(cfg.autoSyncSkills).toBe(true);
   });
 
   it("resolves env placeholders in config fields", () => {
@@ -40,11 +41,13 @@ describe("parseConfig", () => {
       projectId: "${BROWSERBASE_PROJECT_ID}",
       baseUrl: "https://api.browserbase.com",
       promptOnStart: false,
+      autoSyncSkills: false,
     });
 
     expect(cfg.apiKey).toBe("bb_env_key");
     expect(cfg.projectId).toBe("proj_env");
     expect(cfg.promptOnStart).toBe(false);
+    expect(cfg.autoSyncSkills).toBe(false);
   });
 
   it("rejects unknown config keys", () => {

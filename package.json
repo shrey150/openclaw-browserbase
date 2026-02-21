@@ -2,6 +2,7 @@
   "name": "@browserbasehq/openclaw-browserbase",
   "version": "0.1.0",
   "description": "OpenClaw plugin for Browserbase setup and skill installation",
+  "packageManager": "pnpm@10.21.0",
   "type": "module",
   "main": "dist/index.js",
   "scripts": {

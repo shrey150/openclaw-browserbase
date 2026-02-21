@@ -1,13 +1,9 @@
 {
   "id": "browserbase",
   "name": "Browserbase",
-  "description": "Browserbase credential setup helpers with bundled browser automation skills.",
+  "description": "Browserbase credential setup helpers with dynamic skill sync from browserbase/skills.",
   "version": "0.1.0",
   "kind": "tool",
-  "skills": [
-    "./skills/browser-automation",
-    "./skills/functions"
-  ],
   "uiHints": {
     "apiKey": {
       "label": "Browserbase API Key",
@@ -29,6 +25,11 @@
       "label": "Prompt On Startup",
       "help": "Prompt interactively for credentials if missing (TTY only).",
       "advanced": true
+    },
+    "autoSyncSkills": {
+      "label": "Auto Sync Skills",
+      "help": "Automatically sync browser-automation/functions skills from github:browserbase/skills when missing.",
+      "advanced": true
     }
   },
   "configSchema": {
@@ -38,7 +39,8 @@
       "apiKey": { "type": "string" },
       "projectId": { "type": "string" },
       "baseUrl": { "type": "string", "format": "uri" },
-      "promptOnStart": { "type": "boolean" }
+      "promptOnStart": { "type": "boolean" },
+      "autoSyncSkills": { "type": "boolean" }
     },
     "required": []
   }

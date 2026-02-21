@@ -3,11 +3,12 @@ export type BrowserbaseConfig = {
   projectId?: string;
   baseUrl: string;
   promptOnStart: boolean;
+  autoSyncSkills: boolean;
 };
 
 const DEFAULT_BASE_URL = "https://api.browserbase.com";
 
-const ALLOWED_KEYS = ["apiKey", "projectId", "baseUrl", "promptOnStart"];
+const ALLOWED_KEYS = ["apiKey", "projectId", "baseUrl", "promptOnStart", "autoSyncSkills"];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -83,6 +84,7 @@ export function parseConfig(raw: unknown): BrowserbaseConfig {
     projectId,
     baseUrl: parseBaseUrl(cfg.baseUrl),
     promptOnStart: cfg.promptOnStart !== false,
+    autoSyncSkills: cfg.autoSyncSkills !== false,
   };
 }
 
@@ -92,6 +94,7 @@ export function mergeConfig(primary: BrowserbaseConfig, fallback: BrowserbaseCon
     projectId: primary.projectId ?? fallback.projectId,
     baseUrl: primary.baseUrl || fallback.baseUrl,
     promptOnStart: primary.promptOnStart ?? fallback.promptOnStart,
+    autoSyncSkills: primary.autoSyncSkills ?? fallback.autoSyncSkills,
   };
 }
 
@@ -104,6 +107,7 @@ export const browserbaseConfigSchema = {
       projectId: { type: "string" },
       baseUrl: { type: "string", format: "uri" },
       promptOnStart: { type: "boolean" },
+      autoSyncSkills: { type: "boolean" },
     },
   },
   parse: parseConfig,
