@@ -1,0 +1,9 @@
+{
+  "setupComplete": false,
+  "steps": [
+    "Run 'openclaw browserbase setup' (or 'clawdbot browserbase setup' on legacy installs)",
+    "Run 'eval \"$(openclaw browserbase env --format shell)\"'",
+    "Install browser CLI with 'npm install -g github:browserbase/skills'",
+    "Verify with 'browser navigate https://example.com'"
+  ]
+}

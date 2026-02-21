@@ -1,0 +1,45 @@
+{
+  "id": "browserbase",
+  "name": "Browserbase",
+  "description": "Browserbase credential setup helpers with bundled browser automation skills.",
+  "version": "0.1.0",
+  "kind": "tool",
+  "skills": [
+    "./skills/browser-automation",
+    "./skills/functions"
+  ],
+  "uiHints": {
+    "apiKey": {
+      "label": "Browserbase API Key",
+      "sensitive": true,
+      "placeholder": "bb_...",
+      "help": "Get your key from browserbase.com/settings or use ${BROWSERBASE_API_KEY}."
+    },
+    "projectId": {
+      "label": "Browserbase Project ID",
+      "placeholder": "proj_...",
+      "help": "Get your project ID from browserbase.com/settings or use ${BROWSERBASE_PROJECT_ID}."
+    },
+    "baseUrl": {
+      "label": "Browserbase API Base URL",
+      "placeholder": "https://api.browserbase.com",
+      "advanced": true
+    },
+    "promptOnStart": {
+      "label": "Prompt On Startup",
+      "help": "Prompt interactively for credentials if missing (TTY only).",
+      "advanced": true
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "apiKey": { "type": "string" },
+      "projectId": { "type": "string" },
+      "baseUrl": { "type": "string", "format": "uri" },
+      "promptOnStart": { "type": "boolean" }
+    },
+    "required": []
+  }
+}

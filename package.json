@@ -1,0 +1,40 @@
+{
+  "name": "@browserbasehq/openclaw-browserbase",
+  "version": "0.1.0",
+  "description": "OpenClaw plugin for Browserbase setup and skill installation",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "clawdbot",
+    "openclaw",
+    "plugin",
+    "browserbase",
+    "browser",
+    "automation"
+  ],
+  "author": "Browserbase",
+  "license": "MIT",
+  "peerDependencies": {
+    "openclaw": ">=2026.1.29"
+  },
+  "clawdbot": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "openclaw": {
+    "extensions": [
+      "./src/index.ts"
+    ]
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.1",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
+  }
+}
