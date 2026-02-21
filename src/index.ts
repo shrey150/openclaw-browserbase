@@ -7,6 +7,7 @@ import {
   type BrowserbaseConfig,
 } from "./config.js";
 import {
+  dotenvEscape,
   maskSecret,
   readPluginConfig,
   resolveConfigPath,
@@ -250,6 +251,11 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
           typeof options.projectId === "string" ? options.projectId.trim() : "";
 
         if (apiKeyFlag && projectIdFlag) {
+          if (/\$\{[^}]+\}/.test(apiKeyFlag) || /\$\{[^}]+\}/.test(projectIdFlag)) {
+            console.warn(
+              "Warning: Config contains env var placeholders (${...}). OpenClaw will fail to start if those variables are unset in future sessions."
+            );
+          }
           writePluginConfig(configPath, PLUGIN_ID, {
             apiKey: apiKeyFlag,
             projectId: projectIdFlag,
@@ -264,6 +270,12 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
               logger,
             });
           }
+          return;
+        }
+
+        if (!process.stdin.isTTY) {
+          console.error("Error: --api-key and --project-id are required in non-interactive mode.");
+          process.exit(1);
           return;
         }
 
@@ -300,8 +312,8 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
           apiKey: maskSecret(config.apiKey),
           projectId: maskSecret(config.projectId),
           baseUrl: config.baseUrl,
-          promptOnStart: config.promptOnStart,
-          autoSyncSkills: config.autoSyncSkills,
+          promptOnStart: config.promptOnStart ?? true,
+          autoSyncSkills: config.autoSyncSkills ?? true,
           skillsInstalled: hasBrowserbaseSkills(defaultSkillsRoot()),
           skillsPath: defaultSkillsRoot(),
         };
@@ -379,7 +391,9 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
         const { config } = loadMergedConfig(api, logger, options.config);
 
         if (!config.apiKey || !config.projectId) {
-          throw new Error("Browserbase is not configured. Run 'openclaw browserbase setup'.");
+          console.error("Browserbase is not configured. Run 'openclaw browserbase setup'.");
+          process.exit(1);
+          return;
         }
 
         const format = String(options.format ?? "shell").toLowerCase();
@@ -391,8 +405,8 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
         }
 
         if (format === "dotenv") {
-          console.log(`BROWSERBASE_API_KEY=${config.apiKey}`);
-          console.log(`BROWSERBASE_PROJECT_ID=${config.projectId}`);
+          console.log(`BROWSERBASE_API_KEY=${dotenvEscape(config.apiKey)}`);
+          console.log(`BROWSERBASE_PROJECT_ID=${dotenvEscape(config.projectId)}`);
           return;
         }
 
@@ -410,7 +424,8 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
           return;
         }
 
-        throw new Error(`Unknown format: ${format}. Use shell, dotenv, or json.`);
+        console.error(`Unknown format: ${format}. Use shell, dotenv, or json.`);
+        process.exit(1);
       });
 
     browserbase
@@ -438,7 +453,7 @@ async function maybePromptOnStartup(
   const { configPath, config } = loadMergedConfig(api, logger);
   const managedSkillsRoot = defaultSkillsRoot();
 
-  if (config.autoSyncSkills && !hasBrowserbaseSkills(managedSkillsRoot)) {
+  if ((config.autoSyncSkills ?? true) && !hasBrowserbaseSkills(managedSkillsRoot)) {
     logger.info(
       `browserbase: Browserbase skills not found in ${managedSkillsRoot}; syncing from browserbase/skills`
     );
@@ -455,7 +470,7 @@ async function maybePromptOnStartup(
     return;
   }
 
-  if (!config.promptOnStart) {
+  if (!(config.promptOnStart ?? true)) {
     logger.warn("browserbase: missing credentials. Run 'openclaw browserbase setup'.");
     return;
   }
@@ -493,7 +508,7 @@ async function maybePromptOnStartup(
     false
   );
 
-  if (configured && config.autoSyncSkills) {
+  if (configured && (config.autoSyncSkills ?? true)) {
     await runSkillsSync({
       targetRoot: managedSkillsRoot,
       ref: "main",
@@ -513,17 +528,21 @@ export default {
     const logger = createLogger(api);
     registerCli(api, logger);
 
+    const runStartup = () => {
+      maybePromptOnStartup(api, logger).catch((err: unknown) => {
+        logger.warn(`browserbase: startup check failed (${String((err as Error)?.message ?? err)})`);
+      });
+    };
+
     if (typeof api.registerService === "function") {
       api.registerService({
         id: "browserbase-startup-check",
-        start: () => {
-          void maybePromptOnStartup(api, logger);
-        },
+        start: runStartup,
         stop: () => {},
       });
       return;
     }
 
-    void maybePromptOnStartup(api, logger);
+    runStartup();
   },
 };

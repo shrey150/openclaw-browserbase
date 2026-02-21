@@ -98,20 +98,20 @@ export async function syncBrowserbaseSkills(options?: {
     throw new Error("Global fetch is not available in this runtime.");
   }
 
-  const filesWritten: string[] = [];
+  const filesWritten = await Promise.all(
+    SKILL_FILE_MAP.map(async (entry) => {
+      const sourceUrl = `${SKILLS_REPO_RAW_BASE}/${ref}/${entry.sourcePath}`;
+      const content = await downloadText(fetchImpl, sourceUrl);
 
-  for (const entry of SKILL_FILE_MAP) {
-    const sourceUrl = `${SKILLS_REPO_RAW_BASE}/${ref}/${entry.sourcePath}`;
-    const content = await downloadText(fetchImpl, sourceUrl);
+      if (!content.trim()) {
+        throw new Error(`Received empty content for ${sourceUrl}`);
+      }
 
-    if (!content.trim()) {
-      throw new Error(`Received empty content for ${sourceUrl}`);
-    }
-
-    const destination = path.join(targetRoot, entry.destinationPath);
-    await writeFileAtomic(destination, content);
-    filesWritten.push(destination);
-  }
+      const destination = path.join(targetRoot, entry.destinationPath);
+      await writeFileAtomic(destination, content);
+      return destination;
+    })
+  );
 
   return {
     targetRoot,

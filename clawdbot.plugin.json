@@ -38,7 +38,7 @@
     "properties": {
       "apiKey": { "type": "string" },
       "projectId": { "type": "string" },
-      "baseUrl": { "type": "string", "format": "uri" },
+      "baseUrl": { "type": "string" },
       "promptOnStart": { "type": "boolean" },
       "autoSyncSkills": { "type": "boolean" }
     },

@@ -95,4 +95,12 @@ export function shellEscape(value: string): string {
   return `'${value.replace(/'/g, `'"'"'`)}'`;
 }
 
+export function dotenvEscape(value: string): string {
+  // Wrap in double quotes if value contains whitespace, quotes, #, =, or backslashes
+  if (/[\s"'#=\\]/.test(value) || value.includes("\n") || value.includes("\r")) {
+    return `"${value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/\n/g, "\\n").replace(/\r/g, "\\r")}"`;
+  }
+  return value;
+}
+
 export const DEFAULT_PLUGIN_CONFIG_PATHS = DEFAULT_CONFIG_CANDIDATES;

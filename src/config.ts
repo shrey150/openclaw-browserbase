@@ -2,8 +2,8 @@ export type BrowserbaseConfig = {
   apiKey?: string;
   projectId?: string;
   baseUrl: string;
-  promptOnStart: boolean;
-  autoSyncSkills: boolean;
+  promptOnStart?: boolean; // undefined = not explicitly set; callers default to true
+  autoSyncSkills?: boolean; // undefined = not explicitly set; callers default to true
 };
 
 const DEFAULT_BASE_URL = "https://api.browserbase.com";
@@ -83,8 +83,8 @@ export function parseConfig(raw: unknown): BrowserbaseConfig {
     apiKey,
     projectId,
     baseUrl: parseBaseUrl(cfg.baseUrl),
-    promptOnStart: cfg.promptOnStart !== false,
-    autoSyncSkills: cfg.autoSyncSkills !== false,
+    promptOnStart: typeof cfg.promptOnStart === "boolean" ? cfg.promptOnStart : undefined,
+    autoSyncSkills: typeof cfg.autoSyncSkills === "boolean" ? cfg.autoSyncSkills : undefined,
   };
 }
 
@@ -92,7 +92,7 @@ export function mergeConfig(primary: BrowserbaseConfig, fallback: BrowserbaseCon
   return {
     apiKey: primary.apiKey ?? fallback.apiKey,
     projectId: primary.projectId ?? fallback.projectId,
-    baseUrl: primary.baseUrl || fallback.baseUrl,
+    baseUrl: primary.baseUrl ?? fallback.baseUrl,
     promptOnStart: primary.promptOnStart ?? fallback.promptOnStart,
     autoSyncSkills: primary.autoSyncSkills ?? fallback.autoSyncSkills,
   };
@@ -105,7 +105,7 @@ export const browserbaseConfigSchema = {
     properties: {
       apiKey: { type: "string" },
       projectId: { type: "string" },
-      baseUrl: { type: "string", format: "uri" },
+      baseUrl: { type: "string" },
       promptOnStart: { type: "boolean" },
       autoSyncSkills: { type: "boolean" },
     },
