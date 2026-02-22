@@ -8,20 +8,16 @@ const DEFAULT_SKILLS_REF = "main";
 
 const SKILL_FILE_MAP = [
   {
-    sourcePath: "skills/browser-automation/SKILL.md",
-    destinationPath: path.join("browser-automation", "SKILL.md"),
+    sourcePath: "skills/browser/SKILL.md",
+    destinationPath: path.join("browser", "SKILL.md"),
   },
   {
-    sourcePath: "skills/browser-automation/EXAMPLES.md",
-    destinationPath: path.join("browser-automation", "EXAMPLES.md"),
+    sourcePath: "skills/browser/EXAMPLES.md",
+    destinationPath: path.join("browser", "EXAMPLES.md"),
   },
   {
-    sourcePath: "skills/browser-automation/REFERENCE.md",
-    destinationPath: path.join("browser-automation", "REFERENCE.md"),
-  },
-  {
-    sourcePath: "skills/browser-automation/setup.json",
-    destinationPath: path.join("browser-automation", "setup.json"),
+    sourcePath: "skills/browser/REFERENCE.md",
+    destinationPath: path.join("browser", "REFERENCE.md"),
   },
   {
     sourcePath: "skills/functions/SKILL.md",
