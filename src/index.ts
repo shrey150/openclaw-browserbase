@@ -16,8 +16,8 @@ import {
 } from "./config-store.js";
 import {
   defaultSkillsRoot,
-  expectedSkillFiles,
   hasBrowserbaseSkills,
+  installedSkillFiles,
   resolveSkillsRoot,
   syncBrowserbaseSkills,
 } from "./skills-sync.js";
@@ -361,7 +361,7 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
       .action((options: any) => {
         const targetRoot = resolveSkillsRoot(options.dir);
         const installed = hasBrowserbaseSkills(targetRoot);
-        const expectedFiles = expectedSkillFiles(targetRoot);
+        const files = installedSkillFiles(targetRoot);
 
         if (options.json) {
           console.log(
@@ -369,7 +369,7 @@ function registerCli(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]
               {
                 installed,
                 targetRoot,
-                expectedFiles,
+                files,
               },
               null,
               2
