@@ -17,7 +17,7 @@ const DEFAULT_SKILLS_REF = "main";
 const SKILLS_SOURCE_PREFIX = "skills/";
 
 /**
- * Minimum set of subdirectories that must contain a SKILL.md
+ * Subdirectories that must contain a SKILL.md
  * for the installation to be considered complete.
  */
 const REQUIRED_SKILL_DIRS = ["browser", "functions"];

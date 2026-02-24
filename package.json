@@ -1,7 +1,7 @@
 {
   "name": "@browserbasehq/openclaw-browserbase",
   "version": "0.1.0",
-  "description": "OpenClaw plugin for Browserbase setup and skill installation",
+  "description": "OpenClaw plugin for cloud browser automation with anti-bot stealth, CAPTCHA solving, and residential proxies via Browserbase",
   "packageManager": "pnpm@10.21.0",
   "type": "module",
   "main": "dist/index.js",
@@ -10,12 +10,18 @@
     "check-types": "tsc --noEmit"
   },
   "keywords": [
-    "clawdbot",
     "openclaw",
     "plugin",
     "browserbase",
     "browser",
-    "automation"
+    "automation",
+    "web-scraping",
+    "captcha",
+    "anti-bot",
+    "stealth",
+    "proxy",
+    "headless-browser",
+    "ai-agent"
   ],
   "author": "Browserbase",
   "license": "MIT",

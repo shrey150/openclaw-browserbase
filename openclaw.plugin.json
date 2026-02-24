@@ -1,7 +1,7 @@
 {
   "id": "browserbase",
   "name": "Browserbase",
-  "description": "Browserbase credential setup helpers with dynamic skill sync from browserbase/skills.",
+  "description": "Browse the web with anti-bot stealth, automatic CAPTCHA solving, and residential proxies. Automates browser interactions via natural language with full JavaScript rendering.",
   "version": "0.1.0",
   "kind": "tool",
   "uiHints": {

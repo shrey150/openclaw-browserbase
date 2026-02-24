@@ -479,7 +479,7 @@ async function maybePromptOnStartup(
   const configured = await promptAndPersistCredentials(
     configPath,
     { apiKey: config.apiKey, projectId: config.projectId },
-    false
+    true
   );
 
   if (configured && (config.autoSyncSkills ?? true)) {
@@ -495,7 +495,7 @@ async function maybePromptOnStartup(
 export default {
   id: PLUGIN_ID,
   name: "Browserbase",
-  description: "Browserbase setup helper with dynamic skill sync",
+  description: "Browse the web with anti-bot stealth, automatic CAPTCHA solving, and residential proxies via Browserbase",
   kind: "tool" as const,
   configSchema: browserbaseConfigSchema,
   register(api: OpenClawPluginApi) {
