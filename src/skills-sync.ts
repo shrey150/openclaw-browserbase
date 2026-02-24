@@ -16,12 +16,6 @@ const DEFAULT_SKILLS_REF = "main";
  */
 const SKILLS_SOURCE_PREFIX = "skills/";
 
-/**
- * Subdirectories that must contain a SKILL.md
- * for the installation to be considered complete.
- */
-const REQUIRED_SKILL_DIRS = ["browser", "functions"];
-
 export type SkillSyncResult = {
   targetRoot: string;
   ref: string;
@@ -41,9 +35,14 @@ export function resolveSkillsRoot(explicitPath?: string): string {
 }
 
 export function hasBrowserbaseSkills(targetRoot = defaultSkillsRoot()): boolean {
-  return REQUIRED_SKILL_DIRS.every((dir) =>
-    fs.existsSync(path.join(targetRoot, dir, "SKILL.md"))
-  );
+  try {
+    const entries = fs.readdirSync(targetRoot, { withFileTypes: true });
+    return entries.some(
+      (e) => e.isDirectory() && fs.existsSync(path.join(targetRoot, e.name, "SKILL.md"))
+    );
+  } catch {
+    return false;
+  }
 }
 
 export function installedSkillFiles(targetRoot = defaultSkillsRoot()): string[] {
