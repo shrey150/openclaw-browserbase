@@ -23,7 +23,6 @@ import {
 } from "./skills-sync.js";
 
 const PLUGIN_ID = "browserbase";
-const LEGACY_PLUGIN_IDS = [PLUGIN_ID, "clawd-plugin-browserbase", "openclaw-browserbase"];
 
 function createLogger(api: Partial<OpenClawPluginApi>): OpenClawPluginApi["logger"] {
   if (api.logger) {
@@ -36,10 +35,6 @@ function createLogger(api: Partial<OpenClawPluginApi>): OpenClawPluginApi["logge
     error: (msg: string, ...args: unknown[]) => console.error(msg, ...args),
     debug: (msg: string) => console.debug(msg),
   };
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function parseConfigSafe(
@@ -57,29 +52,8 @@ function parseConfigSafe(
   }
 }
 
-function readLegacyPluginConfig(api: OpenClawPluginApi): unknown {
-  const root = api.config;
-  if (!isRecord(root)) {
-    return {};
-  }
-
-  const plugins = isRecord(root.plugins) ? root.plugins : {};
-  const entries = isRecord(plugins.entries) ? plugins.entries : {};
-
-  for (const pluginId of LEGACY_PLUGIN_IDS) {
-    const entry = entries[pluginId];
-    if (isRecord(entry) && isRecord(entry.config)) {
-      return entry.config;
-    }
-  }
-
-  return {};
-}
-
 function runtimeConfig(api: OpenClawPluginApi, logger: OpenClawPluginApi["logger"]): BrowserbaseConfig {
-  const fromPluginConfig = parseConfigSafe(api.pluginConfig, logger, "pluginConfig");
-  const fromLegacyConfig = parseConfigSafe(readLegacyPluginConfig(api), logger, "legacy config");
-  return mergeConfig(fromPluginConfig, fromLegacyConfig);
+  return parseConfigSafe(api.pluginConfig, logger, "pluginConfig");
 }
 
 function loadMergedConfig(

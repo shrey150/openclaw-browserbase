@@ -2,10 +2,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 
-const DEFAULT_CONFIG_CANDIDATES = [
-  path.join(os.homedir(), ".openclaw", "openclaw.json"),
-  path.join(os.homedir(), ".clawdbot", "clawdbot.json"),
-];
+const DEFAULT_CONFIG_PATH = path.join(os.homedir(), ".openclaw", "openclaw.json");
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -39,8 +36,7 @@ export function resolveConfigPath(explicitPath?: string): string {
     return path.resolve(process.cwd(), explicitPath.trim());
   }
 
-  const existing = DEFAULT_CONFIG_CANDIDATES.find((candidate) => fs.existsSync(candidate));
-  return existing ?? DEFAULT_CONFIG_CANDIDATES[0];
+  return DEFAULT_CONFIG_PATH;
 }
 
 export function readPluginConfig(filePath: string, pluginId: string): Record<string, unknown> {
@@ -102,5 +98,3 @@ export function dotenvEscape(value: string): string {
   }
   return value;
 }
-
-export const DEFAULT_PLUGIN_CONFIG_PATHS = DEFAULT_CONFIG_CANDIDATES;
